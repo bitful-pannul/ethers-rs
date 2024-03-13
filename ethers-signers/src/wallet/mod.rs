@@ -145,6 +145,13 @@ impl<D: PrehashSigner<(RecoverableSignature, RecoveryId)>> Wallet<D> {
         Ok(sig)
     }
 
+    pub fn sign_typed_data<T: Eip712>(&self, payload: &T) -> Result<Signature, WalletError> {
+        let encoded =
+            payload.encode_eip712().map_err(|e| WalletError::Eip712Error(e.to_string()))?;
+
+        self.sign_hash(H256::from(encoded))
+    }
+
     /// Signs the provided hash.
     pub fn sign_hash(&self, hash: H256) -> Result<Signature, WalletError> {
         let (recoverable_sig, recovery_id) = self.signer.sign_prehash(hash.as_ref())?;
